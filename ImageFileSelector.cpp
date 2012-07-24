@@ -17,7 +17,7 @@
  *=========================================================================*/
 
 // Submodules
-#include "Mask/ITKHelpers/Helpers/Helpers.h"
+#include "Helpers/Helpers.h"
 #include "Mask/Mask.h"
 #include "QtHelpers/QtHelpers.h"
 

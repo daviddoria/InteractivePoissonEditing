@@ -1,12 +1,44 @@
-# If either interactive executable is going to be built, we need Qt, and for the file selector to be built.
-#if(PoissonEditingInteractive OR PoissonCloningInteractive)
+cmake_minimum_required(VERSION 2.8)
 
-add_subdirectory(QtHelpers)
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/" ${CMAKE_MODULE_PATH})
 
-add_subdirectory(ITKQtHelpers)
+# C++11 support
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
 
+# ITK
+FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase
+ITKImageIntensity ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology ITKDistanceMap)
+INCLUDE(${ITK_USE_FILE})
+
+# Qt
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
+
+# Eigen3
+# FIND_PACKAGE(Eigen3 REQUIRED) #requires FindEigen3.cmake to be in the source directory
+include_directories(/media/portable/src/Eigen)
+include_directories(${EIGEN3_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR}/unsupported/)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET")
+
+# UMFPACK
+FIND_PACKAGE(Umfpack REQUIRED)
+include_directories(${UMFPACK_INCLUDES})
+
+# Submodules
+if(NOT TARGET PoissonEditing)
+  add_subdirectory(PoissonEditing)
+  include_directories(${PoissonEditing_includes})
+endif()
+
+if(NOT TARGET QtHelpers)
+  add_subdirectory(QtHelpers)
+  include_directories(${QtHelpers_includes})
+endif()
+
+if(NOT TARGET ITKQtHelpers)
+  add_subdirectory(ITKQtHelpers)
+  include_directories(${ITKQtHelpers_includes})
+endif()
 
 # Let Qt find it's MOCed files
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})

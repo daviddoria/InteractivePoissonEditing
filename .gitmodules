@@ -1,0 +1,9 @@
+[submodule "ITKQtHelpers"]
+	path = ITKQtHelpers
+	url = https://github.com/daviddoria/ITKQtHelpers.git
+[submodule "QtHelpers"]
+	path = QtHelpers
+	url = https://github.com/daviddoria/QtHelpers.git
+[submodule "PoissonEditing"]
+	path = PoissonEditing
+	url = https://github.com/daviddoria/PoissonEditing.git

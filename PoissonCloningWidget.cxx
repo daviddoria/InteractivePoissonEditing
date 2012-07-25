@@ -20,10 +20,15 @@
 
 // Custom
 #include "ImageFileSelector.h"
-#include "HelpersOutput.h"
-#include "HelpersQt.h"
-#include "Mask.h"
-#include "PoissonCloning.h"
+
+// Submodules
+#include "Helpers/Helpers.h"
+#include "QtHelpers/QtHelpers.h"
+#include "ITKQtHelpers/ITKQtHelpers.h"
+#include "ITKHelpers/ITKHelpers.h"
+#include "Mask/Mask.h"
+#include "Mask/MaskQt.h"
+#include "PoissonEditing/PoissonEditing.h"
 
 // ITK
 #include "itkImageFileReader.h"
@@ -115,9 +120,9 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName, co
   sourceImageReader->SetFileName(sourceImageFileName);
   sourceImageReader->Update();
 
-  Helpers::DeepCopyVectorImage<ImageType>(sourceImageReader->GetOutput(), this->SourceImage);
+  ITKHelpers::DeepCopy(sourceImageReader->GetOutput(), this->SourceImage.GetPointer());
 
-  QImage qimageSourceImage = HelpersQt::GetQImage<ImageType>(this->SourceImage);
+  QImage qimageSourceImage = ITKQtHelpers::GetQImageColor(this->SourceImage.GetPointer());
   this->SourceImagePixmapItem = this->SourceScene->addPixmap(QPixmap::fromImage(qimageSourceImage));
     
   // Load and display target image
@@ -125,9 +130,9 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName, co
   targetImageReader->SetFileName(targetImageFileName);
   targetImageReader->Update();
 
-  Helpers::DeepCopyVectorImage<ImageType>(targetImageReader->GetOutput(), this->TargetImage);
+  ITKHelpers::DeepCopy(targetImageReader->GetOutput(), this->TargetImage.GetPointer());
 
-  QImage qimageTargetImage = HelpersQt::GetQImage<ImageType>(this->TargetImage);
+  QImage qimageTargetImage = ITKQtHelpers::GetQImageColor(this->TargetImage.GetPointer());
   this->TargetImagePixmapItem = this->TargetScene->addPixmap(QPixmap::fromImage(qimageTargetImage));
   this->TargetScene->setSceneRect(qimageTargetImage.rect());
 
@@ -137,9 +142,9 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName, co
   maskReader->SetFileName(maskFileName);
   maskReader->Update();
 
-  Helpers::DeepCopy<Mask>(maskReader->GetOutput(), this->MaskImage);
+  this->MaskImage->DeepCopyFrom(maskReader->GetOutput());
 
-  QImage qimageMask = HelpersQt::GetQMaskImage(this->MaskImage);
+  QImage qimageMask = MaskQt::GetQtImage(this->MaskImage.GetPointer());
   this->MaskImagePixmapItem = this->SourceScene->addPixmap(QPixmap::fromImage(qimageMask));
   this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
 
@@ -179,15 +184,17 @@ void PoissonCloningWidget::on_btnClone_clicked()
   regionOfInterestImageFilter->Update();
 
   // Perform the cloning
-  QFuture<void> future = QtConcurrent::run(CloneAllChannels<ImageType>, this->SourceImage.GetPointer(),
-                                           regionOfInterestImageFilter->GetOutput(),
-                                           this->MaskImage.GetPointer(), this->ResultImage.GetPointer());
-  this->FutureWatcher.setFuture(future);
-
-  this->ProgressDialog->setMinimum(0);
-  this->ProgressDialog->setMaximum(0);
-  this->ProgressDialog->setWindowModality(Qt::WindowModal);
-  this->ProgressDialog->exec();
+  // TODO: Fix this to use the new API.
+//   QFuture<void> future = QtConcurrent::run(PoissonEditing<ImageType>::FillAllChannels, this->SourceImage.GetPointer(),
+//                                            regionOfInterestImageFilter->GetOutput(),
+//                                            this->MaskImage.GetPointer(), this->ResultImage.GetPointer());
+// 
+//   this->FutureWatcher.setFuture(future);
+// 
+//   this->ProgressDialog->setMinimum(0);
+//   this->ProgressDialog->setMaximum(0);
+//   this->ProgressDialog->setWindowModality(Qt::WindowModal);
+//   this->ProgressDialog->exec();
 
 }
 
@@ -202,11 +209,10 @@ void PoissonCloningWidget::on_actionSaveResult_activated()
     return;
     }
 
-  HelpersOutput::WriteImage<ImageType>(this->ResultImage, fileName.toStdString());
-  HelpersOutput::WriteRGBImage<ImageType>(this->ResultImage, fileName.toStdString() + ".png");
+  ITKHelpers::WriteImage(this->ResultImage.GetPointer(), fileName.toStdString());
+  ITKHelpers::WriteRGBImage(this->ResultImage.GetPointer(), fileName.toStdString() + ".png");
   this->statusBar()->showMessage("Saved result.");
 }
-
 
 void PoissonCloningWidget::on_actionOpenImages_activated()
 {
@@ -268,7 +274,7 @@ void PoissonCloningWidget::slot_IterationComplete()
   pasteImageFilter->Update();
 
   // Display the result
-  QImage qimage = HelpersQt::GetQImage<ImageType>(pasteImageFilter->GetOutput());
+  QImage qimage = ITKQtHelpers::GetQImageColor(pasteImageFilter->GetOutput());
   //qimage = HelpersQt::FitToGraphicsView(qimage, this->graphicsViewResultImage);
 
   this->ResultPixmapItem = this->ResultScene->addPixmap(QPixmap::fromImage(qimage));

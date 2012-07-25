@@ -25,7 +25,7 @@
 // Submodules
 #include "ITKHelpers/ITKHelpers.h"
 #include "QtHelpers/QtHelpers.h"
-#include "QtHelpers/ITKQtHelpers.h"
+#include "ITKQtHelpers/ITKQtHelpers.h"
 #include "Mask/Mask.h"
 #include "Mask/MaskQt.h"
 
@@ -117,7 +117,7 @@ void PoissonEditingWidget::on_btnFill_clicked()
   }
   
 //   QFuture<void> future = QtConcurrent::run(FillAllChannels<ImageType>, Image.GetPointer(), MaskImage.GetPointer(),
-  QFuture<void> future = QtConcurrent::run(FillAllChannels<ImageType, GuidanceFieldType>, Image.GetPointer(),
+  QFuture<void> future = QtConcurrent::run(PoissonEditing<ImageType>::FillAllChannels<ImageType, GuidanceFieldType>, Image.GetPointer(),
                                            MaskImage.GetPointer(),
                                            guidanceFieldsRawPointers, Result.GetPointer());
 
@@ -156,7 +156,7 @@ void PoissonEditingWidget::OpenImageAndMask(const std::string& imageFileName, co
 
   ITKHelpers::DeepCopy(imageReader->GetOutput(), this->Image.GetPointer());
 
-  QImage qimageImage = ITKQtHelpers::GetQImageRGBA(this->Image.GetPointer());
+  QImage qimageImage = ITKQtHelpers::GetQImageColor(this->Image.GetPointer());
   this->ImagePixmapItem = this->Scene->addPixmap(QPixmap::fromImage(qimageImage));
   this->graphicsView->fitInView(this->ImagePixmapItem);
   this->ImagePixmapItem->setVisible(this->chkShowInput->isChecked());
@@ -225,7 +225,7 @@ void PoissonEditingWidget::on_chkShowMask_clicked()
 
 void PoissonEditingWidget::slot_IterationComplete()
 {
-  QImage qimage = ITKQtHelpers::GetQImageRGBA(this->Result.GetPointer());
+  QImage qimage = ITKQtHelpers::GetQImageColor(this->Result.GetPointer());
   this->ResultPixmapItem = this->Scene->addPixmap(QPixmap::fromImage(qimage));
   this->ResultPixmapItem->setVisible(this->chkShowOutput->isChecked());
 }

@@ -42,7 +42,7 @@ public:
   PoissonEditingWidget(const std::string& imageFileName, const std::string& maskFileName);
 
   typedef itk::VectorImage<float,2> ImageType;
-  
+
 public slots:
 
   void on_actionOpenImage_activated();

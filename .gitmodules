@@ -7,3 +7,6 @@
 [submodule "PoissonEditing"]
 	path = PoissonEditing
 	url = https://github.com/daviddoria/PoissonEditing.git
+[submodule "CMakeHelpers"]
+	path = CMakeHelpers
+	url = https://github.com/daviddoria/CMakeHelpers.git

@@ -45,7 +45,11 @@ void PoissonEditingWidget::SharedConstructor()
   std::cout << "SharedConstructor()" << std::endl;
   this->setupUi(this);
 
+  // Instantiate a progress dialog and set it up in marquee mode
   this->ProgressDialog = new QProgressDialog();
+  this->ProgressDialog->setMinimum(0);
+  this->ProgressDialog->setMaximum(0);
+  this->ProgressDialog->setWindowModality(Qt::WindowModal);
 
   connect(&this->FutureWatcher, SIGNAL(finished()), this, SLOT(slot_IterationComplete()));
   connect(&this->FutureWatcher, SIGNAL(finished()), this->ProgressDialog , SLOT(cancel()));
@@ -81,22 +85,25 @@ PoissonEditingWidget::PoissonEditingWidget(const std::string& imageFileName, con
 void PoissonEditingWidget::showEvent ( QShowEvent * event )
 {
   if(this->ImagePixmapItem)
-    {
+  {
     this->graphicsView->fitInView(this->ImagePixmapItem, Qt::KeepAspectRatio);
-    }
+  }
 }
 
 void PoissonEditingWidget::resizeEvent ( QResizeEvent * event )
 {
   if(this->ImagePixmapItem)
-    {
+  {
     this->graphicsView->fitInView(this->ImagePixmapItem, Qt::KeepAspectRatio);
-    }
+  }
 }
 
 void PoissonEditingWidget::on_btnFill_clicked()
 {
-  typedef itk::Image<itk::CovariantVector<float, 2>, 2> GuidanceFieldType;
+  typedef PoissonEditing<float> PoissonEditingType;
+
+  typedef PoissonEditingType::GuidanceFieldType GuidanceFieldType;
+
   std::vector<GuidanceFieldType::Pointer> guidanceFields;
   //std::vector<GuidanceFieldType*> guidanceFields;
   for(unsigned int channel = 0; channel < Image->GetNumberOfComponentsPerPixel(); ++channel)
@@ -116,16 +123,15 @@ void PoissonEditingWidget::on_btnFill_clicked()
     guidanceFieldsRawPointers.push_back(guidanceFields[channel]);
   }
   
-//   QFuture<void> future = QtConcurrent::run(FillAllChannels<ImageType>, Image.GetPointer(), MaskImage.GetPointer(),
-  QFuture<void> future = QtConcurrent::run(PoissonEditing<ImageType>::FillAllChannels<ImageType, GuidanceFieldType>, Image.GetPointer(),
-                                           MaskImage.GetPointer(),
-                                           guidanceFieldsRawPointers, Result.GetPointer());
+//   QFuture<void> future = QtConcurrent::run(FillImage<ImageType::PixelType>, Image.GetPointer(), MaskImage.GetPointer(),
+  PoissonEditingType::FillImage(this->Image.GetPointer(), this->MaskImage.GetPointer(),
+                                guidanceFieldsRawPointers, this->Result.GetPointer());
+//  QFuture<void> future = QtConcurrent::run(PoissonEditing<float>::FillImage<ImageType>, this->Image.GetPointer(),
+//                                           this->MaskImage.GetPointer(),
+//                                           guidanceFieldsRawPointers, this->Result.GetPointer());
 
-  this->FutureWatcher.setFuture(future);
+//  this->FutureWatcher.setFuture(future);
 
-  this->ProgressDialog->setMinimum(0);
-  this->ProgressDialog->setMaximum(0);
-  this->ProgressDialog->setWindowModality(Qt::WindowModal);
   this->ProgressDialog->exec();
 }
 

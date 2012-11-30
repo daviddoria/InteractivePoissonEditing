@@ -61,7 +61,8 @@ protected:
   itk::Index<2> SelectedRegionCorner;
 
   void OpenImages(const std::string& sourceImageFileName,
-                  const std::string& targetImageFileName, const std::string& maskFileName);
+                  const std::string& maskFileName,
+                  const std::string& targetImageFileName);
 
   void showEvent ( QShowEvent * event );
   void resizeEvent ( QResizeEvent * event );

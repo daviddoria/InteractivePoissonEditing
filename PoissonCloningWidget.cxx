@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,12 +44,12 @@
 #include <QtConcurrentRun>
 
 PoissonCloningWidget::PoissonCloningWidget(const std::string& sourceImageFileName,
-                                           const std::string& targetImageFileName,
-                                           const std::string& maskFileName) : PoissonCloningWidget()
+                                           const std::string& maskFileName,
+                                           const std::string& targetImageFileName) : PoissonCloningWidget()
 {
   this->SourceImageFileName = sourceImageFileName;
-  this->TargetImageFileName = targetImageFileName;
   this->MaskImageFileName = maskFileName;
+  this->TargetImageFileName = targetImageFileName;
 
   OpenImages(this->SourceImageFileName, this->TargetImageFileName, this->MaskImageFileName);
 }
@@ -89,8 +89,10 @@ void PoissonCloningWidget::showEvent(QShowEvent* event)
 {
   if(SourceImagePixmapItem && TargetImagePixmapItem)
   {
-    this->graphicsViewSourceImage->fitInView(this->SourceImagePixmapItem, Qt::KeepAspectRatio);
-    this->graphicsViewTargetImage->fitInView(this->TargetImagePixmapItem, Qt::KeepAspectRatio);
+    this->graphicsViewSourceImage->fitInView(this->SourceImagePixmapItem,
+                                             Qt::KeepAspectRatio);
+    this->graphicsViewTargetImage->fitInView(this->TargetImagePixmapItem,
+                                             Qt::KeepAspectRatio);
   }
 }
 
@@ -98,47 +100,60 @@ void PoissonCloningWidget::resizeEvent(QResizeEvent* event)
 {
   if(SourceImagePixmapItem && TargetImagePixmapItem)
   {
-    this->graphicsViewSourceImage->fitInView(this->SourceImagePixmapItem, Qt::KeepAspectRatio);
-    this->graphicsViewTargetImage->fitInView(this->TargetImagePixmapItem, Qt::KeepAspectRatio);
+    this->graphicsViewSourceImage->fitInView(this->SourceImagePixmapItem,
+                                             Qt::KeepAspectRatio);
+    this->graphicsViewTargetImage->fitInView(this->TargetImagePixmapItem,
+                                             Qt::KeepAspectRatio);
   }
 }
   
-void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName, const std::string& targetImageFileName, const std::string& maskFileName)
+void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName,
+                                      const std::string& targetImageFileName,
+                                      const std::string& maskFileName)
 {
   // Load and display source image
   typedef itk::ImageFileReader<ImageType> ImageReaderType;
-  ImageReaderType::Pointer sourceImageReader = ImageReaderType::New();
+  ImageReaderType::Pointer sourceImageReader =
+      ImageReaderType::New();
   sourceImageReader->SetFileName(sourceImageFileName);
   sourceImageReader->Update();
 
-  ITKHelpers::DeepCopy(sourceImageReader->GetOutput(), this->SourceImage.GetPointer());
+  ITKHelpers::DeepCopy(sourceImageReader->GetOutput(),
+                       this->SourceImage.GetPointer());
 
-  QImage qimageSourceImage = ITKQtHelpers::GetQImageColor(this->SourceImage.GetPointer());
-  this->SourceImagePixmapItem = this->SourceScene->addPixmap(QPixmap::fromImage(qimageSourceImage));
+  QImage qimageSourceImage =
+      ITKQtHelpers::GetQImageColor(this->SourceImage.GetPointer());
+  this->SourceImagePixmapItem =
+      this->SourceScene->addPixmap(QPixmap::fromImage(qimageSourceImage));
     
   // Load and display target image
   ImageReaderType::Pointer targetImageReader = ImageReaderType::New();
   targetImageReader->SetFileName(targetImageFileName);
   targetImageReader->Update();
 
-  ITKHelpers::DeepCopy(targetImageReader->GetOutput(), this->TargetImage.GetPointer());
+  ITKHelpers::DeepCopy(targetImageReader->GetOutput(),
+                       this->TargetImage.GetPointer());
 
-  QImage qimageTargetImage = ITKQtHelpers::GetQImageColor(this->TargetImage.GetPointer());
-  this->TargetImagePixmapItem = this->TargetScene->addPixmap(QPixmap::fromImage(qimageTargetImage));
+  QImage qimageTargetImage =
+      ITKQtHelpers::GetQImageColor(this->TargetImage.GetPointer());
+  this->TargetImagePixmapItem =
+      this->TargetScene->addPixmap(QPixmap::fromImage(qimageTargetImage));
   this->TargetScene->setSceneRect(qimageTargetImage.rect());
 
   // Load and display mask
   this->MaskImage->Read(maskFileName);
 
   QImage qimageMask = MaskQt::GetQtImage(this->MaskImage.GetPointer());
-  this->MaskImagePixmapItem = this->SourceScene->addPixmap(QPixmap::fromImage(qimageMask));
+  this->MaskImagePixmapItem =
+      this->SourceScene->addPixmap(QPixmap::fromImage(qimageMask));
   this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
 
   // Setup selection region
   QColor semiTransparentRed(255,0,0, 127);
 
-  this->SelectionImage = QImage(sourceImageReader->GetOutput()->GetLargestPossibleRegion().GetSize()[0],
-                                sourceImageReader->GetOutput()->GetLargestPossibleRegion().GetSize()[1], QImage::Format_ARGB32);
+  auto sourceImageSize = sourceImageReader->GetOutput()->GetLargestPossibleRegion().GetSize();
+  this->SelectionImage = QImage(sourceImageSize[0],
+                                sourceImageSize[1], QImage::Format_ARGB32);
   this->SelectionImage.fill(semiTransparentRed.rgba());
 
   this->SelectionImagePixmapItem = this->TargetScene->addPixmap(QPixmap::fromImage(this->SelectionImage));
@@ -152,19 +167,16 @@ void PoissonCloningWidget::on_btnClone_clicked()
   // Extract the portion of the target image the user has selected.
   
   this->SelectedRegionCorner[0] = this->SelectionImagePixmapItem->pos().x();
-  //corner[1] = this->SelectionImagePixmapItem->pos().y();
-  this->SelectedRegionCorner[1] = this->TargetImage->GetLargestPossibleRegion().GetSize()[1] -
-              (this->SelectionImagePixmapItem->pos().y() + this->SelectionImagePixmapItem->boundingRect().height());
-//   std::cout << "Height: " << this->SelectionImagePixmapItem->boundingRect().height() << std::endl;
-//   std::cout << "y: " << this->SelectionImagePixmapItem->pos().y() << std::endl;
-//   std::cout << "Corner: " << corner << std::endl;
+  this->SelectedRegionCorner[1] = this->SelectionImagePixmapItem->pos().y();
   
-  itk::Size<2> size = this->SourceImage->GetLargestPossibleRegion().GetSize();
-
-  ImageType::RegionType desiredRegion(this->SelectedRegionCorner, size);
+  ImageType::RegionType desiredRegion(this->SelectedRegionCorner,
+                                      this->SourceImage->GetLargestPossibleRegion().GetSize());
 
   std::vector<PoissonEditingParent::GuidanceFieldType::Pointer> guidanceFields =
       PoissonEditingParent::ComputeGuidanceField(this->SourceImage.GetPointer());
+
+  ITKHelpers::WriteImage(this->SourceImage.GetPointer(), "source.mha");
+  ITKHelpers::WriteImage(guidanceFields[0].GetPointer(), "guidanceField.mha");
 
   // We must get a function pointer to the overload that would be chosen by the compiler
   // to pass to run().
@@ -177,7 +189,7 @@ void PoissonCloningWidget::on_btnClone_clicked()
 
   QFuture<void> future =
       QtConcurrent::run(functionPointer,
-                        this->SourceImage.GetPointer(),
+                        this->TargetImage.GetPointer(),
                         this->MaskImage.GetPointer(),
                         guidanceFields,
                         this->ResultImage.GetPointer(),
@@ -186,13 +198,14 @@ void PoissonCloningWidget::on_btnClone_clicked()
   this->FutureWatcher.setFuture(future);
 
   this->ProgressDialog->exec();
-
 }
 
 void PoissonCloningWidget::on_actionSaveResult_activated()
 {
   // Get a filename to save
-  QString fileName = QFileDialog::getSaveFileName(this, "Save File", ".", "Image Files (*.jpg *.jpeg *.bmp *.png *.mha)");
+  QString fileName =
+      QFileDialog::getSaveFileName(this, "Save File", ".",
+                                   "Image Files (*.jpg *.jpeg *.bmp *.png *.mha)");
 
   if(fileName.toStdString().empty())
   {
@@ -200,8 +213,10 @@ void PoissonCloningWidget::on_actionSaveResult_activated()
     return;
   }
 
-  ITKHelpers::WriteImage(this->ResultImage.GetPointer(), fileName.toStdString());
-  ITKHelpers::WriteRGBImage(this->ResultImage.GetPointer(), fileName.toStdString() + ".png");
+  ITKHelpers::WriteImage(this->ResultImage.GetPointer(),
+                         fileName.toStdString());
+  ITKHelpers::WriteRGBImage(this->ResultImage.GetPointer(),
+                            fileName.toStdString() + ".png");
   this->statusBar()->showMessage("Saved result.");
 }
 
@@ -254,18 +269,8 @@ void PoissonCloningWidget::slot_finished()
 //   QImage qimage = HelpersQt::GetQImageRGBA<ImageType>(this->ResultImage);
 //   this->ResultPixmapItem = this->ResultScene->addPixmap(QPixmap::fromImage(qimage));
 
-
-  // Paste the result back into the appropriate region of the target image
-  typedef itk::PasteImageFilter <ImageType, ImageType > PasteImageFilterType;
-  PasteImageFilterType::Pointer pasteImageFilter = PasteImageFilterType::New ();
-  pasteImageFilter->SetSourceImage(this->ResultImage);
-  pasteImageFilter->SetDestinationImage(this->TargetImage);
-  pasteImageFilter->SetSourceRegion(this->ResultImage->GetLargestPossibleRegion());
-  pasteImageFilter->SetDestinationIndex(this->SelectedRegionCorner);
-  pasteImageFilter->Update();
-
   // Display the result
-  QImage qimage = ITKQtHelpers::GetQImageColor(pasteImageFilter->GetOutput());
+  QImage qimage = ITKQtHelpers::GetQImageColor(this->ResultImage.GetPointer());
   //qimage = HelpersQt::FitToGraphicsView(qimage, this->graphicsViewResultImage);
 
   this->ResultPixmapItem = this->ResultScene->addPixmap(QPixmap::fromImage(qimage));

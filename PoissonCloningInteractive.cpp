@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,11 +30,13 @@ int main( int argc, char** argv )
   {
     std::cout << "Using filename arguments." << std::endl;
     std::string sourceImageFileName = argv[1];
-    std::string targetImageFileName = argv[2];
-    std::string maskImageFileName = argv[3];
+    std::string maskImageFileName = argv[2];
+    std::string targetImageFileName = argv[3];
+
     poissonCloningWidget =
         new PoissonCloningWidget(sourceImageFileName,
-                                 targetImageFileName, maskImageFileName);
+                                 maskImageFileName,
+                                 targetImageFileName);
   }
   else if(argc == 1)
   {

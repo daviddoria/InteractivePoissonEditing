@@ -39,10 +39,8 @@
 #include <QGraphicsPixmapItem>
 #include <QtConcurrentRun>
 
-// Called by all constructors
-void PoissonEditingWidget::SharedConstructor()
+PoissonEditingWidget::PoissonEditingWidget()
 {
-  std::cout << "SharedConstructor()" << std::endl;
   this->setupUi(this);
 
   // Instantiate a progress dialog and set it up in marquee mode
@@ -60,23 +58,13 @@ void PoissonEditingWidget::SharedConstructor()
 
   this->Scene = new QGraphicsScene;
   this->graphicsView->setScene(this->Scene);
-
-  this->ImagePixmapItem = NULL;
-  this->MaskImagePixmapItem = NULL;
-  this->ResultPixmapItem = NULL;
 }
 
-// Default constructor
-PoissonEditingWidget::PoissonEditingWidget()
-{
-  std::cout << "PoissonEditingWidget()" << std::endl;
-  SharedConstructor();
-};
-
-PoissonEditingWidget::PoissonEditingWidget(const std::string& imageFileName, const std::string& maskFileName)
+PoissonEditingWidget::PoissonEditingWidget(const std::string& imageFileName,
+                                           const std::string& maskFileName) : PoissonEditingWidget()
 {
   std::cout << "PoissonEditingWidget(string, string)" << std::endl;
-  SharedConstructor();
+
   this->SourceImageFileName = imageFileName;
   this->MaskImageFileName = maskFileName;
   OpenImageAndMask(this->SourceImageFileName, this->MaskImageFileName);
@@ -104,20 +92,11 @@ void PoissonEditingWidget::on_btnFill_clicked()
 
   typedef PoissonEditingType::GuidanceFieldType GuidanceFieldType;
 
-  std::vector<GuidanceFieldType::Pointer> guidanceFields;
+  std::vector<GuidanceFieldType::Pointer> guidanceFields =
+      PoissonEditingParent::ComputeGuidanceField(this->Image.GetPointer());
 
-  for(unsigned int channel = 0; channel < this->Image->GetNumberOfComponentsPerPixel();
-      ++channel)
-  {
-    GuidanceFieldType::Pointer guidanceField = GuidanceFieldType::New();
-    guidanceField->SetRegions(Image->GetLargestPossibleRegion());
-    guidanceField->Allocate();
-    GuidanceFieldType::PixelType zeroVector;
-    zeroVector.Fill(0);
-    ITKHelpers::SetImageToConstant(guidanceField.GetPointer(), zeroVector);
-    guidanceFields.push_back(guidanceField);
-  }
-
+  // We must get a function pointer to the overload that would be chosen by the compiler
+  // to pass to run().
   void (*functionPointer)(const std::remove_pointer<decltype(this->Image.GetPointer())>::type*,
                           const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
                           const decltype(guidanceFields)&,

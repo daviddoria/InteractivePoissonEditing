@@ -54,15 +54,12 @@ public slots:
 
   void slot_StartProgressBar();
   void slot_StopProgressBar();
-  void slot_IterationComplete();
-
+  void slot_finished();
   
 protected:
 
   itk::Index<2> SelectedRegionCorner;
-  
-  void SharedConstructor();
-  
+
   void OpenImages(const std::string& sourceImageFileName,
                   const std::string& targetImageFileName, const std::string& maskFileName);
 
@@ -74,17 +71,17 @@ protected:
   ImageType::Pointer TargetImage;
   Mask::Pointer MaskImage;
 
-  QGraphicsPixmapItem* SourceImagePixmapItem;
-  QGraphicsPixmapItem* TargetImagePixmapItem;
-  QGraphicsPixmapItem* MaskImagePixmapItem;
-  QGraphicsPixmapItem* ResultPixmapItem;
+  QGraphicsPixmapItem* SourceImagePixmapItem = nullptr;
+  QGraphicsPixmapItem* TargetImagePixmapItem = nullptr;
+  QGraphicsPixmapItem* MaskImagePixmapItem = nullptr;
+  QGraphicsPixmapItem* ResultPixmapItem = nullptr;
   
   QGraphicsScene* SourceScene;
   QGraphicsScene* TargetScene;
   QGraphicsScene* ResultScene;
 
   QImage SelectionImage;
-  QGraphicsPixmapItem* SelectionImagePixmapItem;
+  QGraphicsPixmapItem* SelectionImagePixmapItem = nullptr;
 
   std::string SourceImageFileName;
   std::string TargetImageFileName;

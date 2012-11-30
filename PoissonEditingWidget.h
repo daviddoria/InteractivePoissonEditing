@@ -58,8 +58,6 @@ public slots:
   void slot_IterationComplete();
 
 private:
-
-  void SharedConstructor();
     
   void showEvent(QShowEvent* event);
   void resizeEvent(QResizeEvent* event);
@@ -71,9 +69,9 @@ private:
   ImageType::Pointer Image;
   Mask::Pointer MaskImage;
 
-  QGraphicsPixmapItem* ImagePixmapItem;
-  QGraphicsPixmapItem* MaskImagePixmapItem;
-  QGraphicsPixmapItem* ResultPixmapItem;
+  QGraphicsPixmapItem* ImagePixmapItem = nullptr;
+  QGraphicsPixmapItem* MaskImagePixmapItem = nullptr;
+  QGraphicsPixmapItem* ResultPixmapItem = nullptr;
   
   QGraphicsScene* Scene;
 

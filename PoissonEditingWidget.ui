@@ -82,7 +82,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpenImageAndMask">
    <property name="text">
-    <string>Open Image</string>
+    <string>Open Image and Mask</string>
    </property>
   </action>
   <action name="actionSaveResult">

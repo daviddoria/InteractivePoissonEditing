@@ -25,20 +25,22 @@ int main( int argc, char** argv )
   QApplication app( argc, argv );
 
   std::cout << "PoissonCloningGUI" << std::endl;
-  PoissonCloningWidget* poissonCloningWidget = NULL;
+  PoissonCloningWidget* poissonCloningWidget = nullptr;
   if(argc == 4)
-    {
+  {
     std::cout << "Using filename arguments." << std::endl;
     std::string sourceImageFileName = argv[1];
     std::string targetImageFileName = argv[2];
     std::string maskImageFileName = argv[3];
-    poissonCloningWidget = new PoissonCloningWidget(sourceImageFileName, targetImageFileName, maskImageFileName);
-    }
+    poissonCloningWidget =
+        new PoissonCloningWidget(sourceImageFileName,
+                                 targetImageFileName, maskImageFileName);
+  }
   else if(argc == 1)
-    {
+  {
     std::cout << "Not using filename arguments." << std::endl;
     poissonCloningWidget = new PoissonCloningWidget;
-    }
+  }
   else
   {
     throw std::runtime_error("Invalid arguments!");

@@ -29,6 +29,7 @@
 #include "Mask/Mask.h"
 #include "Mask/MaskQt.h"
 #include "PoissonEditing/PoissonEditing.h"
+#include "PoissonEditing/PoissonEditingWrappers.h"
 
 // ITK
 #include "itkImageFileReader.h"
@@ -42,16 +43,10 @@
 #include <QTimer>
 #include <QtConcurrentRun>
 
-// Default constructor
-PoissonCloningWidget::PoissonCloningWidget() : QMainWindow()
-{
-  SharedConstructor();
-};
-
 PoissonCloningWidget::PoissonCloningWidget(const std::string& sourceImageFileName,
-                                           const std::string& targetImageFileName, const std::string& maskFileName) : QMainWindow()
+                                           const std::string& targetImageFileName,
+                                           const std::string& maskFileName) : PoissonCloningWidget()
 {
-  SharedConstructor();
   this->SourceImageFileName = sourceImageFileName;
   this->TargetImageFileName = targetImageFileName;
   this->MaskImageFileName = maskFileName;
@@ -59,7 +54,7 @@ PoissonCloningWidget::PoissonCloningWidget(const std::string& sourceImageFileNam
   OpenImages(this->SourceImageFileName, this->TargetImageFileName, this->MaskImageFileName);
 }
 
-void PoissonCloningWidget::SharedConstructor()
+PoissonCloningWidget::PoissonCloningWidget() : QMainWindow()
 {
   this->setupUi(this);
 
@@ -68,6 +63,9 @@ void PoissonCloningWidget::SharedConstructor()
   this->progressBar->hide();
 
   this->ProgressDialog = new QProgressDialog();
+  this->ProgressDialog->setMinimum(0);
+  this->ProgressDialog->setMaximum(0);
+  this->ProgressDialog->setWindowModality(Qt::WindowModal);
 
   connect(&this->FutureWatcher, SIGNAL(finished()), this, SLOT(slot_finished()));
   connect(&this->FutureWatcher, SIGNAL(finished()), this->ProgressDialog , SLOT(cancel()));
@@ -85,13 +83,6 @@ void PoissonCloningWidget::SharedConstructor()
 
   this->ResultScene = new QGraphicsScene;
   this->graphicsViewResultImage->setScene(this->ResultScene);
-
-  this->SourceImagePixmapItem = NULL;
-  this->TargetImagePixmapItem = NULL;
-  this->MaskImagePixmapItem = NULL;
-  this->ResultPixmapItem = NULL;
-
-  this->SelectionImagePixmapItem = NULL;
 }
 
 void PoissonCloningWidget::showEvent(QShowEvent* event)
@@ -172,24 +163,29 @@ void PoissonCloningWidget::on_btnClone_clicked()
 
   ImageType::RegionType desiredRegion(this->SelectedRegionCorner, size);
 
-  typedef itk::RegionOfInterestImageFilter< ImageType, ImageType > RegionOfInterestImageFilterType;
-  RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
-  regionOfInterestImageFilter->SetRegionOfInterest(desiredRegion);
-  regionOfInterestImageFilter->SetInput(this->TargetImage);
-  regionOfInterestImageFilter->Update();
+  std::vector<PoissonEditingParent::GuidanceFieldType::Pointer> guidanceFields =
+      PoissonEditingParent::ComputeGuidanceField(this->SourceImage.GetPointer());
 
-  // Perform the cloning
-  // TODO: Fix this to use the new API.
-//   QFuture<void> future = QtConcurrent::run(PoissonEditing<ImageType>::FillAllChannels, this->SourceImage.GetPointer(),
-//                                            regionOfInterestImageFilter->GetOutput(),
-//                                            this->MaskImage.GetPointer(), this->ResultImage.GetPointer());
-// 
-//   this->FutureWatcher.setFuture(future);
-// 
-//   this->ProgressDialog->setMinimum(0);
-//   this->ProgressDialog->setMaximum(0);
-//   this->ProgressDialog->setWindowModality(Qt::WindowModal);
-//   this->ProgressDialog->exec();
+  // We must get a function pointer to the overload that would be chosen by the compiler
+  // to pass to run().
+  void (*functionPointer)(const std::remove_pointer<decltype(this->TargetImage.GetPointer())>::type*,
+                          const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
+                          const decltype(guidanceFields)&,
+                          decltype(this->ResultImage.GetPointer()),
+                          const itk::ImageRegion<2>&)
+      = FillImage;
+
+  QFuture<void> future =
+      QtConcurrent::run(functionPointer,
+                        this->SourceImage.GetPointer(),
+                        this->MaskImage.GetPointer(),
+                        guidanceFields,
+                        this->ResultImage.GetPointer(),
+                        desiredRegion);
+
+  this->FutureWatcher.setFuture(future);
+
+  this->ProgressDialog->exec();
 
 }
 
@@ -199,10 +195,10 @@ void PoissonCloningWidget::on_actionSaveResult_activated()
   QString fileName = QFileDialog::getSaveFileName(this, "Save File", ".", "Image Files (*.jpg *.jpeg *.bmp *.png *.mha)");
 
   if(fileName.toStdString().empty())
-    {
+  {
     std::cout << "Filename was empty." << std::endl;
     return;
-    }
+  }
 
   ITKHelpers::WriteImage(this->ResultImage.GetPointer(), fileName.toStdString());
   ITKHelpers::WriteRGBImage(this->ResultImage.GetPointer(), fileName.toStdString() + ".png");
@@ -221,24 +217,24 @@ void PoissonCloningWidget::on_actionOpenImages_activated()
 
   int result = fileSelector->result();
   if(result) // The user clicked 'ok'
-    {
+  {
     OpenImages(fileSelector->GetNamedImageFileName("SourceImage"),
-              fileSelector->GetNamedImageFileName("TargetImage"),
-              fileSelector->GetNamedImageFileName("MaskImage"));
-    }
+               fileSelector->GetNamedImageFileName("TargetImage"),
+               fileSelector->GetNamedImageFileName("MaskImage"));
+  }
   else
-    {
+  {
     // std::cout << "User clicked cancel." << std::endl;
     // The user clicked 'cancel' or closed the dialog, do nothing.
-    }
+  }
 }
 
 void PoissonCloningWidget::on_chkShowMask_clicked()
 {
   if(!this->MaskImagePixmapItem)
-    {
+  {
     return;
-    }
+  }
   this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
 }
 
@@ -253,7 +249,7 @@ void PoissonCloningWidget::slot_StopProgressBar()
   this->progressBar->hide();
 }
 
-void PoissonCloningWidget::slot_IterationComplete()
+void PoissonCloningWidget::slot_finished()
 {
 //   QImage qimage = HelpersQt::GetQImageRGBA<ImageType>(this->ResultImage);
 //   this->ResultPixmapItem = this->ResultScene->addPixmap(QPixmap::fromImage(qimage));

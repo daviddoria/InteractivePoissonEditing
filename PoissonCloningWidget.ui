@@ -6,17 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>797</width>
+    <height>614</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Poisson Cloning</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout" rowstretch="1,5,1,1,5,0,0" columnstretch="1,1">
-    <item row="1" column="0">
-     <widget class="QGraphicsView" name="graphicsViewSourceImage">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QGraphicsView" name="graphicsViewInputImage">
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
@@ -25,53 +25,7 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1" rowspan="4">
-     <widget class="QGraphicsView" name="graphicsViewResultImage"/>
-    </item>
-    <item row="4" column="0">
-     <widget class="QGraphicsView" name="graphicsViewTargetImage">
-      <property name="verticalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QCheckBox" name="chkShowMask">
-      <property name="text">
-       <string>Show mask</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Source image</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Target image</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
+    <item>
      <widget class="QLabel" name="label_3">
       <property name="font">
        <font>
@@ -84,17 +38,20 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="0">
-     <widget class="QPushButton" name="btnClone">
-      <property name="text">
-       <string>Clone</string>
+    <item>
+     <widget class="QGraphicsView" name="graphicsViewResultImage">
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
      </widget>
     </item>
-    <item row="6" column="0">
-     <widget class="QProgressBar" name="progressBar">
-      <property name="value">
-       <number>24</number>
+    <item>
+     <widget class="QPushButton" name="btnClone">
+      <property name="text">
+       <string>Clone</string>
       </property>
      </widget>
     </item>
@@ -105,7 +62,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>797</width>
      <height>28</height>
     </rect>
    </property>

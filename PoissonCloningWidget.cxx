@@ -58,10 +58,6 @@ PoissonCloningWidget::PoissonCloningWidget() : QMainWindow()
 {
   this->setupUi(this);
 
-  this->progressBar->setMinimum(0);
-  this->progressBar->setMaximum(0);
-  this->progressBar->hide();
-
   this->ProgressDialog = new QProgressDialog();
   this->ProgressDialog->setMinimum(0);
   this->ProgressDialog->setMaximum(0);
@@ -75,11 +71,8 @@ PoissonCloningWidget::PoissonCloningWidget() : QMainWindow()
   this->MaskImage = Mask::New();
   this->ResultImage = ImageType::New();
 
-  this->SourceScene = new QGraphicsScene;
-  this->graphicsViewSourceImage->setScene(this->SourceScene);
-
-  this->TargetScene = new QGraphicsScene;
-  this->graphicsViewTargetImage->setScene(this->TargetScene);
+  this->InputScene = new QGraphicsScene;
+  this->graphicsViewInputImage->setScene(this->InputScene);
 
   this->ResultScene = new QGraphicsScene;
   this->graphicsViewResultImage->setScene(this->ResultScene);
@@ -89,21 +82,21 @@ void PoissonCloningWidget::showEvent(QShowEvent* event)
 {
   if(SourceImagePixmapItem && TargetImagePixmapItem)
   {
-    this->graphicsViewSourceImage->fitInView(this->SourceImagePixmapItem,
-                                             Qt::KeepAspectRatio);
-    this->graphicsViewTargetImage->fitInView(this->TargetImagePixmapItem,
-                                             Qt::KeepAspectRatio);
+    this->graphicsViewInputImage->fitInView(this->TargetImagePixmapItem,
+                                            Qt::KeepAspectRatio);
+    this->graphicsViewResultImage->fitInView(this->TargetImagePixmapItem,
+                                            Qt::KeepAspectRatio);
   }
 }
 
 void PoissonCloningWidget::resizeEvent(QResizeEvent* event)
 {
-  if(SourceImagePixmapItem && TargetImagePixmapItem)
+  if(this->SourceImagePixmapItem && this->TargetImagePixmapItem)
   {
-    this->graphicsViewSourceImage->fitInView(this->SourceImagePixmapItem,
-                                             Qt::KeepAspectRatio);
-    this->graphicsViewTargetImage->fitInView(this->TargetImagePixmapItem,
-                                             Qt::KeepAspectRatio);
+    this->graphicsViewInputImage->fitInView(this->TargetImagePixmapItem,
+                                            Qt::KeepAspectRatio);
+    this->graphicsViewResultImage->fitInView(this->TargetImagePixmapItem,
+                                            Qt::KeepAspectRatio);
   }
 }
   
@@ -111,6 +104,9 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName,
                                       const std::string& targetImageFileName,
                                       const std::string& maskFileName)
 {
+  // Load the mask
+  this->MaskImage->Read(maskFileName);
+
   // Load and display source image
   typedef itk::ImageFileReader<ImageType> ImageReaderType;
   ImageReaderType::Pointer sourceImageReader =
@@ -124,8 +120,9 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName,
   QImage qimageSourceImage =
       ITKQtHelpers::GetQImageColor(this->SourceImage.GetPointer());
   this->SourceImagePixmapItem =
-      this->SourceScene->addPixmap(QPixmap::fromImage(qimageSourceImage));
-    
+    this->InputScene->addPixmap(QPixmap::fromImage(qimageSourceImage));
+  this->SourceImagePixmapItem->setFlag(QGraphicsItem::ItemIsMovable);
+
   // Load and display target image
   ImageReaderType::Pointer targetImageReader = ImageReaderType::New();
   targetImageReader->SetFileName(targetImageFileName);
@@ -137,37 +134,34 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName,
   QImage qimageTargetImage =
       ITKQtHelpers::GetQImageColor(this->TargetImage.GetPointer());
   this->TargetImagePixmapItem =
-      this->TargetScene->addPixmap(QPixmap::fromImage(qimageTargetImage));
-  this->TargetScene->setSceneRect(qimageTargetImage.rect());
+      this->InputScene->addPixmap(QPixmap::fromImage(qimageTargetImage));
+  this->InputScene->setSceneRect(qimageTargetImage.rect());
 
-  // Load and display mask
-  this->MaskImage->Read(maskFileName);
+  // Size the result image
+  this->ResultScene->setSceneRect(qimageTargetImage.rect());
 
-  QImage qimageMask = MaskQt::GetQtImage(this->MaskImage.GetPointer());
-  this->MaskImagePixmapItem =
-      this->SourceScene->addPixmap(QPixmap::fromImage(qimageMask));
-  this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
+  this->SourceImagePixmapItem->setZValue(this->TargetImagePixmapItem->zValue()+1); // make sure the source image is on top of the target image
+
+//  QImage qimageMask = MaskQt::GetQtImage(this->MaskImage.GetPointer());
+//  this->MaskImagePixmapItem =
+//      this->SourceScene->addPixmap(QPixmap::fromImage(qimageMask));
+//  this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
 
   // Setup selection region
-  QColor semiTransparentRed(255,0,0, 127);
+//  QColor semiTransparentRed(255,0,0, 127);
 
-  auto sourceImageSize = sourceImageReader->GetOutput()->GetLargestPossibleRegion().GetSize();
-  this->SelectionImage = QImage(sourceImageSize[0],
-                                sourceImageSize[1], QImage::Format_ARGB32);
-  this->SelectionImage.fill(semiTransparentRed.rgba());
-
-  this->SelectionImagePixmapItem = this->TargetScene->addPixmap(QPixmap::fromImage(this->SelectionImage));
-  //this->SelectionImagePixmapItem->setFlag(QGraphicsItem::ItemIsMovable, true);
-  this->SelectionImagePixmapItem->setFlag(QGraphicsItem::ItemIsMovable);
-
+//  auto sourceImageSize = sourceImageReader->GetOutput()->GetLargestPossibleRegion().GetSize();
+//  this->SelectionImage = QImage(sourceImageSize[0],
+//                                sourceImageSize[1], QImage::Format_ARGB32);
+//  this->SelectionImage.fill(semiTransparentRed.rgba());
 }
 
 void PoissonCloningWidget::on_btnClone_clicked()
 {
   // Extract the portion of the target image the user has selected.
   
-  this->SelectedRegionCorner[0] = this->SelectionImagePixmapItem->pos().x();
-  this->SelectedRegionCorner[1] = this->SelectionImagePixmapItem->pos().y();
+  this->SelectedRegionCorner[0] = this->SourceImagePixmapItem->pos().x();
+  this->SelectedRegionCorner[1] = this->SourceImagePixmapItem->pos().y();
   
   ImageType::RegionType desiredRegion(this->SelectedRegionCorner,
                                       this->SourceImage->GetLargestPossibleRegion().GetSize());
@@ -244,36 +238,10 @@ void PoissonCloningWidget::on_actionOpenImages_activated()
   }
 }
 
-void PoissonCloningWidget::on_chkShowMask_clicked()
-{
-  if(!this->MaskImagePixmapItem)
-  {
-    return;
-  }
-  this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
-}
-
-
-void PoissonCloningWidget::slot_StartProgressBar()
-{
-  this->progressBar->show();
-}
-
-void PoissonCloningWidget::slot_StopProgressBar()
-{
-  this->progressBar->hide();
-}
-
 void PoissonCloningWidget::slot_finished()
 {
-//   QImage qimage = HelpersQt::GetQImageRGBA<ImageType>(this->ResultImage);
-//   this->ResultPixmapItem = this->ResultScene->addPixmap(QPixmap::fromImage(qimage));
-
-  // Display the result
   QImage qimage = ITKQtHelpers::GetQImageColor(this->ResultImage.GetPointer());
-  //qimage = HelpersQt::FitToGraphicsView(qimage, this->graphicsViewResultImage);
 
   this->ResultPixmapItem = this->ResultScene->addPixmap(QPixmap::fromImage(qimage));
   this->graphicsViewResultImage->fitInView(this->ResultPixmapItem, Qt::KeepAspectRatio);
-  //this->ResultPixmapItem->setVisible(this->chkShowOutput->isChecked());
 }

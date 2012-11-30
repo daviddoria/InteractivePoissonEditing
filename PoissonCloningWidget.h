@@ -50,10 +50,7 @@ public slots:
   void on_actionSaveResult_activated();
   
   void on_btnClone_clicked();
-  void on_chkShowMask_clicked();
 
-  void slot_StartProgressBar();
-  void slot_StopProgressBar();
   void slot_finished();
   
 protected:
@@ -74,15 +71,10 @@ protected:
 
   QGraphicsPixmapItem* SourceImagePixmapItem = nullptr;
   QGraphicsPixmapItem* TargetImagePixmapItem = nullptr;
-  QGraphicsPixmapItem* MaskImagePixmapItem = nullptr;
   QGraphicsPixmapItem* ResultPixmapItem = nullptr;
   
-  QGraphicsScene* SourceScene;
-  QGraphicsScene* TargetScene;
+  QGraphicsScene* InputScene;
   QGraphicsScene* ResultScene;
-
-  QImage SelectionImage;
-  QGraphicsPixmapItem* SelectionImagePixmapItem = nullptr;
 
   std::string SourceImageFileName;
   std::string TargetImageFileName;

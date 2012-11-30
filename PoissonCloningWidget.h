@@ -39,7 +39,8 @@ class PoissonCloningWidget : public QMainWindow, public Ui::PoissonCloningWidget
 public:
 
   PoissonCloningWidget();
-  PoissonCloningWidget(const std::string& sourceImageFileName, const std::string& targetImageFileName, const std::string& maskFileName);
+  PoissonCloningWidget(const std::string& sourceImageFileName,
+                       const std::string& targetImageFileName, const std::string& maskFileName);
   
   typedef itk::VectorImage<float,2> ImageType;
     
@@ -62,7 +63,8 @@ protected:
   
   void SharedConstructor();
   
-  void OpenImages(const std::string& sourceImageFileName, const std::string& targetImageFileName, const std::string& maskFileName);
+  void OpenImages(const std::string& sourceImageFileName,
+                  const std::string& targetImageFileName, const std::string& maskFileName);
 
   void showEvent ( QShowEvent * event );
   void resizeEvent ( QResizeEvent * event );

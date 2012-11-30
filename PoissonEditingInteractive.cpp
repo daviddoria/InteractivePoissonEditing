@@ -20,26 +20,26 @@
 
 #include "PoissonEditingWidget.h"
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
   QApplication app( argc, argv );
 
-  PoissonEditingWidget* poissonEditingGUI = NULL;
+  PoissonEditingWidget* poissonEditingGUI = nullptr;
   if(argc == 3)
-    {
+  {
     std::cout << "Using filename arguments." << std::endl;
     poissonEditingGUI = new PoissonEditingWidget(argv[1], argv[2]);
-    }
+  }
   else if(argc == 1)
-    {
+  {
     //std::cout << "Not using filename arguments." << std::endl;
     poissonEditingGUI = new PoissonEditingWidget;
-    }
+  }
   else
   {
     throw std::runtime_error("Invalid arguments!");
   }
-  //myForm.show();
+
   poissonEditingGUI->showMaximized();
 
   return app.exec();

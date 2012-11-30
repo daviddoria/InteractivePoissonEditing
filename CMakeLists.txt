@@ -17,7 +17,8 @@ endif(UNIX)
 
 # ITK
 FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase
-ITKImageIntensity ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology ITKDistanceMap)
+ITKImageIntensity ITKImageFeature ITKMathematicalMorphology
+ITKBinaryMathematicalMorphology ITKDistanceMap ITKTestKernel)
 INCLUDE(${ITK_USE_FILE})
 
 # Qt

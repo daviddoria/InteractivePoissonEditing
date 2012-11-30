@@ -39,13 +39,14 @@ class PoissonEditingWidget : public QMainWindow, public Ui::PoissonEditingWidget
 public:
 
   PoissonEditingWidget();
-  PoissonEditingWidget(const std::string& imageFileName, const std::string& maskFileName);
+  PoissonEditingWidget(const std::string& imageFileName,
+                       const std::string& maskFileName);
 
   typedef itk::VectorImage<float,2> ImageType;
 
 public slots:
 
-  void on_actionOpenImage_activated();
+  void on_actionOpenImageAndMask_activated();
   void on_actionSaveResult_activated();
   
   void on_btnFill_clicked();
@@ -63,7 +64,8 @@ private:
   void showEvent(QShowEvent* event);
   void resizeEvent(QResizeEvent* event);
   
-  void OpenImageAndMask(const std::string& imageFileName, const std::string& maskFileName);
+  void OpenImageAndMask(const std::string& imageFileName,
+                        const std::string& maskFileName);
 
   ImageType::Pointer Result;
   ImageType::Pointer Image;

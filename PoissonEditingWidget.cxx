@@ -20,7 +20,6 @@
 
 // Custom
 #include "ImageFileSelector.h"
-#include "PoissonEditing.h"
 
 // Submodules
 #include "ITKHelpers/ITKHelpers.h"
@@ -28,6 +27,7 @@
 #include "ITKQtHelpers/ITKQtHelpers.h"
 #include "Mask/Mask.h"
 #include "Mask/MaskQt.h"
+#include "PoissonEditing/PoissonEditingWrappers.h"
 
 // ITK
 #include "itkImageFileReader.h"
@@ -105,8 +105,9 @@ void PoissonEditingWidget::on_btnFill_clicked()
   typedef PoissonEditingType::GuidanceFieldType GuidanceFieldType;
 
   std::vector<GuidanceFieldType::Pointer> guidanceFields;
-  //std::vector<GuidanceFieldType*> guidanceFields;
-  for(unsigned int channel = 0; channel < Image->GetNumberOfComponentsPerPixel(); ++channel)
+
+  for(unsigned int channel = 0; channel < this->Image->GetNumberOfComponentsPerPixel();
+      ++channel)
   {
     GuidanceFieldType::Pointer guidanceField = GuidanceFieldType::New();
     guidanceField->SetRegions(Image->GetLargestPossibleRegion());
@@ -117,20 +118,22 @@ void PoissonEditingWidget::on_btnFill_clicked()
     guidanceFields.push_back(guidanceField);
   }
 
-  std::vector<GuidanceFieldType*> guidanceFieldsRawPointers;
-  for(unsigned int channel = 0; channel < Image->GetNumberOfComponentsPerPixel(); ++channel)
-  {
-    guidanceFieldsRawPointers.push_back(guidanceFields[channel]);
-  }
-  
-//   QFuture<void> future = QtConcurrent::run(FillImage<ImageType::PixelType>, Image.GetPointer(), MaskImage.GetPointer(),
-  PoissonEditingType::FillImage(this->Image.GetPointer(), this->MaskImage.GetPointer(),
-                                guidanceFieldsRawPointers, this->Result.GetPointer());
-//  QFuture<void> future = QtConcurrent::run(PoissonEditing<float>::FillImage<ImageType>, this->Image.GetPointer(),
-//                                           this->MaskImage.GetPointer(),
-//                                           guidanceFieldsRawPointers, this->Result.GetPointer());
+  void (*functionPointer)(const std::remove_pointer<decltype(this->Image.GetPointer())>::type*,
+                          const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
+                          const decltype(guidanceFields)&,
+                          decltype(this->Result.GetPointer()),
+                          decltype(this->Image->GetLargestPossibleRegion()))
+      = FillImage;
 
-//  this->FutureWatcher.setFuture(future);
+  QFuture<void> future =
+      QtConcurrent::run(functionPointer,
+                        this->Image.GetPointer(),
+                        this->MaskImage.GetPointer(),
+                        guidanceFields,
+                        this->Result.GetPointer(),
+                        this->Image->GetLargestPossibleRegion());
+
+  this->FutureWatcher.setFuture(future);
 
   this->ProgressDialog->exec();
 }
@@ -142,17 +145,18 @@ void PoissonEditingWidget::on_actionSaveResult_activated()
                                                   "Image Files (*.jpg *.jpeg *.bmp *.png *.mha)");
 
   if(fileName.toStdString().empty())
-    {
+  {
     std::cout << "Filename was empty." << std::endl;
     return;
-    }
+  }
 
   ITKHelpers::WriteImage(this->Result.GetPointer(), fileName.toStdString());
   ITKHelpers::WriteRGBImage(this->Result.GetPointer(), fileName.toStdString() + ".png");
   this->statusBar()->showMessage("Saved result.");
 }
 
-void PoissonEditingWidget::OpenImageAndMask(const std::string& imageFileName, const std::string& maskFileName)
+void PoissonEditingWidget::OpenImageAndMask(const std::string& imageFileName,
+                                            const std::string& maskFileName)
 {
   // Load and display image
   typedef itk::ImageFileReader<ImageType> ImageReaderType;
@@ -168,19 +172,14 @@ void PoissonEditingWidget::OpenImageAndMask(const std::string& imageFileName, co
   this->ImagePixmapItem->setVisible(this->chkShowInput->isChecked());
 
   // Load and display mask
-  typedef itk::ImageFileReader<Mask> MaskReaderType;
-  MaskReaderType::Pointer maskReader = MaskReaderType::New();
-  maskReader->SetFileName(maskFileName);
-  maskReader->Update();
-
-  ITKHelpers::DeepCopy(maskReader->GetOutput(), this->MaskImage.GetPointer());
+  this->MaskImage->Read(maskFileName);
 
   QImage qimageMask = MaskQt::GetQtImage(this->MaskImage);
   this->MaskImagePixmapItem = this->Scene->addPixmap(QPixmap::fromImage(qimageMask));
   this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
 }
 
-void PoissonEditingWidget::on_actionOpenImage_activated()
+void PoissonEditingWidget::on_actionOpenImageAndMask_activated()
 {
   std::cout << "on_actionOpenImage_activated" << std::endl;
   std::vector<std::string> namedImages;
@@ -192,40 +191,41 @@ void PoissonEditingWidget::on_actionOpenImage_activated()
 
   int result = fileSelector->result();
   if(result) // The user clicked 'ok'
-    {
-    OpenImageAndMask(fileSelector->GetNamedImageFileName("Image"), fileSelector->GetNamedImageFileName("Mask"));
-    }
+  {
+    OpenImageAndMask(fileSelector->GetNamedImageFileName("Image"),
+                     fileSelector->GetNamedImageFileName("Mask"));
+  }
   else
-    {
+  {
     // std::cout << "User clicked cancel." << std::endl;
     // The user clicked 'cancel' or closed the dialog, do nothing.
-    }
+  }
 }
 
 void PoissonEditingWidget::on_chkShowInput_clicked()
 {
   if(!this->ImagePixmapItem)
-    {
+  {
     return;
-    }
+  }
   this->ImagePixmapItem->setVisible(this->chkShowInput->isChecked());
 }
 
 void PoissonEditingWidget::on_chkShowOutput_clicked()
 {
   if(!this->ResultPixmapItem)
-    {
+  {
     return;
-    }
+  }
   this->ResultPixmapItem->setVisible(this->chkShowOutput->isChecked());
 }
 
 void PoissonEditingWidget::on_chkShowMask_clicked()
 {
   if(!this->MaskImagePixmapItem)
-    {
+  {
     return;
-    }
+  }
   this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
 }
 

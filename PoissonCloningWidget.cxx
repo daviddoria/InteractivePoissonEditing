@@ -137,12 +137,7 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName, co
   this->TargetScene->setSceneRect(qimageTargetImage.rect());
 
   // Load and display mask
-  typedef itk::ImageFileReader<Mask> MaskReaderType;
-  MaskReaderType::Pointer maskReader = MaskReaderType::New();
-  maskReader->SetFileName(maskFileName);
-  maskReader->Update();
-
-  this->MaskImage->DeepCopyFrom(maskReader->GetOutput());
+  this->MaskImage->Read(maskFileName);
 
   QImage qimageMask = MaskQt::GetQtImage(this->MaskImage.GetPointer());
   this->MaskImagePixmapItem = this->SourceScene->addPixmap(QPixmap::fromImage(qimageMask));

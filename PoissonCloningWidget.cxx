@@ -240,6 +240,11 @@ void PoissonCloningWidget::on_actionOpenImages_activated()
 
 void PoissonCloningWidget::slot_finished()
 {
+  if(this->ResultImage->GetNumberOfComponentsPerPixel() == 0)
+  {
+    return;
+  }
+
   QImage qimage = ITKQtHelpers::GetQImageColor(this->ResultImage.GetPointer(),
                                                QImage::Format_RGB888);
 

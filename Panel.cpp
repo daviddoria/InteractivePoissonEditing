@@ -69,7 +69,7 @@ void Panel::LoadAndDisplay()
 
   this->Image = reader->GetOutput();
 
-  QImage image = ITKQtHelpers::GetQImageColor(this->Image.GetPointer());
+  QImage image = ITKQtHelpers::GetQImageColor(this->Image.GetPointer(), QImage::Format_RGB888);
   image = QtHelpers::FitToGraphicsView(image, this->GraphicsView);
 
   this->GraphicsScene->clear();

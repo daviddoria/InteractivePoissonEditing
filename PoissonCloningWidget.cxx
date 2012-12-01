@@ -118,7 +118,12 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName,
                        this->SourceImage.GetPointer());
 
   QImage qimageSourceImage =
-      ITKQtHelpers::GetQImageColor(this->SourceImage.GetPointer());
+//      ITKQtHelpers::GetQImageColor(this->SourceImage.GetPointer(), QImage::Format_RGB888);
+      ITKQtHelpers::GetQImageColor(this->SourceImage.GetPointer(),
+                                   QImage::Format_ARGB32);
+  qimageSourceImage =
+      MaskQt::SetPixelsToTransparent(qimageSourceImage,
+                                     this->MaskImage, HoleMaskPixelTypeEnum::VALID);
   this->SourceImagePixmapItem =
     this->InputScene->addPixmap(QPixmap::fromImage(qimageSourceImage));
   this->SourceImagePixmapItem->setFlag(QGraphicsItem::ItemIsMovable);
@@ -132,7 +137,8 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName,
                        this->TargetImage.GetPointer());
 
   QImage qimageTargetImage =
-      ITKQtHelpers::GetQImageColor(this->TargetImage.GetPointer());
+      ITKQtHelpers::GetQImageColor(this->TargetImage.GetPointer(),
+                                   QImage::Format_RGB888);
   this->TargetImagePixmapItem =
       this->InputScene->addPixmap(QPixmap::fromImage(qimageTargetImage));
   this->InputScene->setSceneRect(qimageTargetImage.rect());
@@ -142,18 +148,12 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName,
 
   this->SourceImagePixmapItem->setZValue(this->TargetImagePixmapItem->zValue()+1); // make sure the source image is on top of the target image
 
-//  QImage qimageMask = MaskQt::GetQtImage(this->MaskImage.GetPointer());
-//  this->MaskImagePixmapItem =
-//      this->SourceScene->addPixmap(QPixmap::fromImage(qimageMask));
-//  this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
-
   // Setup selection region
-//  QColor semiTransparentRed(255,0,0, 127);
+//  QColor semiTransparentRed(255, 0, 0, 127);
 
 //  auto sourceImageSize = sourceImageReader->GetOutput()->GetLargestPossibleRegion().GetSize();
 //  this->SelectionImage = QImage(sourceImageSize[0],
 //                                sourceImageSize[1], QImage::Format_ARGB32);
-//  this->SelectionImage.fill(semiTransparentRed.rgba());
 }
 
 void PoissonCloningWidget::on_btnClone_clicked()
@@ -240,7 +240,8 @@ void PoissonCloningWidget::on_actionOpenImages_activated()
 
 void PoissonCloningWidget::slot_finished()
 {
-  QImage qimage = ITKQtHelpers::GetQImageColor(this->ResultImage.GetPointer());
+  QImage qimage = ITKQtHelpers::GetQImageColor(this->ResultImage.GetPointer(),
+                                               QImage::Format_RGB888);
 
   this->ResultPixmapItem = this->ResultScene->addPixmap(QPixmap::fromImage(qimage));
   this->graphicsViewResultImage->fitInView(this->ResultPixmapItem, Qt::KeepAspectRatio);

@@ -145,7 +145,8 @@ void PoissonEditingWidget::OpenImageAndMask(const std::string& imageFileName,
 
   ITKHelpers::DeepCopy(imageReader->GetOutput(), this->Image.GetPointer());
 
-  QImage qimageImage = ITKQtHelpers::GetQImageColor(this->Image.GetPointer());
+  QImage qimageImage = ITKQtHelpers::GetQImageColor(this->Image.GetPointer(),
+                                                    QImage::Format_RGB888);
   this->ImagePixmapItem = this->Scene->addPixmap(QPixmap::fromImage(qimageImage));
   this->graphicsView->fitInView(this->ImagePixmapItem);
   this->ImagePixmapItem->setVisible(this->chkShowInput->isChecked());
@@ -210,7 +211,8 @@ void PoissonEditingWidget::on_chkShowMask_clicked()
 
 void PoissonEditingWidget::slot_IterationComplete()
 {
-  QImage qimage = ITKQtHelpers::GetQImageColor(this->Result.GetPointer());
+  QImage qimage = ITKQtHelpers::GetQImageColor(this->Result.GetPointer(),
+                                               QImage::Format_RGB888);
   this->ResultPixmapItem = this->Scene->addPixmap(QPixmap::fromImage(qimage));
   this->ResultPixmapItem->setVisible(this->chkShowOutput->isChecked());
 }

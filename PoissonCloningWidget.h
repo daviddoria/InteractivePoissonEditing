@@ -50,6 +50,7 @@ public slots:
   void on_actionSaveResult_activated();
   
   void on_btnClone_clicked();
+  void on_btnMixedClone_clicked();
 
   void slot_finished();
   

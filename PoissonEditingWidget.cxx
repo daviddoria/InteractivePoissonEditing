@@ -33,6 +33,9 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
+// Boost
+#include <boost/bind.hpp>
+
 // Qt
 #include <QIcon>
 #include <QFileDialog>
@@ -101,16 +104,17 @@ void PoissonEditingWidget::on_btnFill_clicked()
                           const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
                           const decltype(guidanceFields)&,
                           decltype(this->Result.GetPointer()),
-                          decltype(this->Image->GetLargestPossibleRegion()))
+                          decltype(this->Image->GetLargestPossibleRegion()),
+                          const std::remove_pointer<decltype(this->Image.GetPointer())>::type*)
       = FillImage;
 
   QFuture<void> future =
-      QtConcurrent::run(functionPointer,
+      QtConcurrent::run(boost::bind(functionPointer,
                         this->Image.GetPointer(),
                         this->MaskImage.GetPointer(),
                         guidanceFields,
                         this->Result.GetPointer(),
-                        this->Image->GetLargestPossibleRegion());
+                        this->Image->GetLargestPossibleRegion(), nullptr));
 
   this->FutureWatcher.setFuture(future);
 

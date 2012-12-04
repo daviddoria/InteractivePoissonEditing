@@ -36,6 +36,9 @@
 #include "itkImageFileWriter.h"
 #include "itkPasteImageFilter.h"
 
+// Boost
+#include <boost/bind.hpp>
+
 // Qt
 #include <QIcon>
 #include <QFileDialog>
@@ -174,20 +177,37 @@ void PoissonCloningWidget::on_btnClone_clicked()
 
   // We must get a function pointer to the overload that would be chosen by the compiler
   // to pass to run().
+//  void (*functionPointer)(const std::remove_pointer<decltype(this->TargetImage.GetPointer())>::type*,
+//                          const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
+//                          const decltype(guidanceFields)&,
+//                          decltype(this->ResultImage.GetPointer()),
+//                          const itk::ImageRegion<2>&)
+//      = FillImage;
+
+//  QFuture<void> future =
+//      QtConcurrent::run(functionPointer,
+//                        this->TargetImage.GetPointer(),
+//                        this->MaskImage.GetPointer(),
+//                        guidanceFields,
+//                        this->ResultImage.GetPointer(),
+//                        desiredRegion);
+
   void (*functionPointer)(const std::remove_pointer<decltype(this->TargetImage.GetPointer())>::type*,
                           const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
                           const decltype(guidanceFields)&,
                           decltype(this->ResultImage.GetPointer()),
-                          const itk::ImageRegion<2>&)
+                          const itk::ImageRegion<2>&,
+                          const std::remove_pointer<decltype(this->SourceImage.GetPointer())>::type*)
       = FillImage;
 
   QFuture<void> future =
-      QtConcurrent::run(functionPointer,
+      QtConcurrent::run(boost::bind(functionPointer,
                         this->TargetImage.GetPointer(),
                         this->MaskImage.GetPointer(),
                         guidanceFields,
                         this->ResultImage.GetPointer(),
-                        desiredRegion);
+                        desiredRegion,
+                        this->SourceImage.GetPointer()));
 
   this->FutureWatcher.setFuture(future);
 
@@ -243,24 +263,24 @@ void PoissonCloningWidget::on_btnMixedClone_clicked()
 
   // We must get a function pointer to the overload that would be chosen by the compiler
   // to pass to run().
-  void (*functionPointer)(const std::remove_pointer<decltype(this->TargetImage.GetPointer())>::type*,
-                          const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
-                          const decltype(sourceGuidanceFields)&,
-                          decltype(this->ResultImage.GetPointer()),
-                          const itk::ImageRegion<2>&)
-      = FillImage;
+//  void (*functionPointer)(const std::remove_pointer<decltype(this->TargetImage.GetPointer())>::type*,
+//                          const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
+//                          const decltype(sourceGuidanceFields)&,
+//                          decltype(this->ResultImage.GetPointer()),
+//                          const itk::ImageRegion<2>&)
+//      = FillImage;
 
-  QFuture<void> future =
-      QtConcurrent::run(functionPointer,
-                        this->TargetImage.GetPointer(),
-                        this->MaskImage.GetPointer(),
-                        sourceGuidanceFields,
-                        this->ResultImage.GetPointer(),
-                        desiredRegion);
+//  QFuture<void> future =
+//      QtConcurrent::run(functionPointer,
+//                        this->TargetImage.GetPointer(),
+//                        this->MaskImage.GetPointer(),
+//                        sourceGuidanceFields,
+//                        this->ResultImage.GetPointer(),
+//                        desiredRegion);
 
-  this->FutureWatcher.setFuture(future);
+//  this->FutureWatcher.setFuture(future);
 
-  this->ProgressDialog->exec();
+//  this->ProgressDialog->exec();
 }
 
 void PoissonCloningWidget::on_actionSaveResult_activated()

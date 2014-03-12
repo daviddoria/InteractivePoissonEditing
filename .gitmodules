@@ -1,12 +1,12 @@
 [submodule "ITKQtHelpers"]
 	path = ITKQtHelpers
-	url = https://github.com/daviddoria/ITKQtHelpers.git
+	url = ../ITKQtHelpers.git
 [submodule "QtHelpers"]
 	path = QtHelpers
-	url = https://github.com/daviddoria/QtHelpers.git
+	url = ../QtHelpers.git
 [submodule "PoissonEditing"]
 	path = PoissonEditing
-	url = https://github.com/daviddoria/PoissonEditing.git
+	url = ../PoissonEditing.git
 [submodule "CMakeHelpers"]
 	path = CMakeHelpers
-	url = https://github.com/daviddoria/CMakeHelpers.git
+	url = ../CMakeHelpers.git

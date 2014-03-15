@@ -95,24 +95,24 @@ void PoissonEditingWidget::on_btnFill_clicked()
 
   typedef PoissonEditingType::GuidanceFieldType GuidanceFieldType;
 
-  std::vector<GuidanceFieldType::Pointer> guidanceFields =
-      PoissonEditingParent::ComputeGuidanceField(this->Image.GetPointer());
+  GuidanceFieldType::Pointer zeroGuidanceField =
+      PoissonEditing<float>::CreateZeroGuidanceField(this->Image.GetPointer());
 
   // We must get a function pointer to the overload that would be chosen by the compiler
   // to pass to run().
   void (*functionPointer)(const std::remove_pointer<decltype(this->Image.GetPointer())>::type*,
                           const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
-                          const decltype(guidanceFields)&,
+                          const std::remove_pointer<decltype(zeroGuidanceField.GetPointer())>::type*,
                           decltype(this->Result.GetPointer()),
                           decltype(this->Image->GetLargestPossibleRegion()),
                           const std::remove_pointer<decltype(this->Image.GetPointer())>::type*)
-      = FillImage;
+          = FillImage;
 
   QFuture<void> future =
       QtConcurrent::run(boost::bind(functionPointer,
                         this->Image.GetPointer(),
                         this->MaskImage.GetPointer(),
-                        guidanceFields,
+                        zeroGuidanceField,
                         this->Result.GetPointer(),
                         this->Image->GetLargestPossibleRegion(), nullptr));
 

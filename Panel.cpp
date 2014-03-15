@@ -63,8 +63,18 @@ void Panel::LoadAndDisplay()
   typedef itk::VectorImage<float, 2> FloatVectorImageType;
   typedef itk::ImageFileReader<FloatVectorImageType> ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(this->SelectionWidget->currentIndex().data(QFileSystemModel::FilePathRole)
-          .toString().toStdString());
+  std::string filename = this->SelectionWidget->currentIndex().data(QFileSystemModel::FilePathRole)
+                          .toString().toStdString();
+  std::cout << "Loading file " << filename << std::endl;
+
+  if(Helpers::GetFileExtension(filename) == "mask")
+  {
+    QFileInfo fileInfo(filename.c_str());
+    QString filePath = fileInfo.absolutePath();
+    filename = filePath.toStdString() + "/" + Mask::GetFilenameFromMaskFile(filename);
+  }
+
+  reader->SetFileName(filename);
   reader->Update();
 
   this->Image = reader->GetOutput();

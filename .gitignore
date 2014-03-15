@@ -1,3 +1,4 @@
+build/
 .fuse_hidden*
 *.user
 *.user.*

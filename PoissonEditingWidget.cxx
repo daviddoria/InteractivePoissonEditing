@@ -100,21 +100,46 @@ void PoissonEditingWidget::on_btnFill_clicked()
 
   // We must get a function pointer to the overload that would be chosen by the compiler
   // to pass to run().
+//  void (*functionPointer)(const std::remove_pointer<decltype(this->Image.GetPointer())>::type*,
+//                          const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
+//                          const std::remove_pointer<decltype(zeroGuidanceField.GetPointer())>::type*,
+//                          decltype(this->Result.GetPointer()),
+//                          decltype(this->Image->GetLargestPossibleRegion()),
+//                          const std::remove_pointer<decltype(this->Image.GetPointer())>::type*)
+//          = FillImage;
+
+//  QFuture<void> future =
+//      QtConcurrent::run(boost::bind(functionPointer,
+//                        this->Image.GetPointer(),
+//                        this->MaskImage.GetPointer(),
+//                        zeroGuidanceField,
+//                        this->Result.GetPointer(),
+//                        this->Image->GetLargestPossibleRegion(), nullptr));
+
+  //std::vector<GuidanceFieldType::Pointer> guidanceFields(3, zeroGuidanceField);
+  std::vector<GuidanceFieldType*> guidanceFields(3, zeroGuidanceField);
+
+  // We must get a function pointer to the overload that would be chosen by the compiler
+  // to pass to run().
   void (*functionPointer)(const std::remove_pointer<decltype(this->Image.GetPointer())>::type*,
                           const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
-                          const std::remove_pointer<decltype(zeroGuidanceField.GetPointer())>::type*,
+                          //const decltype(guidanceFields),
+                          const std::vector<std::remove_pointer<decltype(zeroGuidanceField.GetPointer())>::type*>&,
                           decltype(this->Result.GetPointer()),
                           decltype(this->Image->GetLargestPossibleRegion()),
                           const std::remove_pointer<decltype(this->Image.GetPointer())>::type*)
-          = FillImage;
+          = FillVectorImage;
+
+  auto functionToCall = std::bind(functionPointer,
+                                  this->Image.GetPointer(),
+                                  this->MaskImage.GetPointer(),
+                                  guidanceFields,
+                                  this->Result.GetPointer(),
+                                  this->Image->GetLargestPossibleRegion(),
+                                  nullptr);
 
   QFuture<void> future =
-      QtConcurrent::run(boost::bind(functionPointer,
-                        this->Image.GetPointer(),
-                        this->MaskImage.GetPointer(),
-                        zeroGuidanceField,
-                        this->Result.GetPointer(),
-                        this->Image->GetLargestPossibleRegion(), nullptr));
+        QtConcurrent::run(functionToCall);
 
   this->FutureWatcher.setFuture(future);
 

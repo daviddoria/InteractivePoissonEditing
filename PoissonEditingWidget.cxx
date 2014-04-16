@@ -158,8 +158,10 @@ void PoissonEditingWidget::OpenImageAndMask(const std::string& imageFileName,
   // Load and display mask
   this->MaskImage->Read(maskFileName);
 
-  QImage qimageMask = MaskQt::GetQtImage(this->MaskImage);
-  this->MaskImagePixmapItem = this->Scene->addPixmap(QPixmap::fromImage(qimageMask));
+  QImage qimageMask = MaskQt::GetQtImage(this->MaskImage, 122);
+  QPixmap maskPixmap = QPixmap::fromImage(qimageMask);
+
+  this->MaskImagePixmapItem = this->Scene->addPixmap(maskPixmap);
   this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
 }
 

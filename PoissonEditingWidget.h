@@ -33,6 +33,7 @@
 #include <QProgressDialog>
 class QGraphicsPixmapItem;
 
+
 class PoissonEditingWidget : public QMainWindow, public Ui::PoissonEditingWidget
 {
   Q_OBJECT

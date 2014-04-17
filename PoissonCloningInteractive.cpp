@@ -16,6 +16,12 @@
  *
  *=========================================================================*/
 
+/** In this application, you can drag the object to composite (the Source Image)
+  * around over the destination (Target Image) in the top panel to position it.
+  * When you click "Clone", the source image will be composited into the target image
+  * using Poisson cloning.
+  */
+
 #include <QApplication>
 
 #include "PoissonCloningWidget.h"

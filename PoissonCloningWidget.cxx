@@ -36,9 +36,6 @@
 #include "itkImageFileWriter.h"
 #include "itkPasteImageFilter.h"
 
-// Boost
-#include <boost/bind.hpp>
-
 // Qt
 #include <QIcon>
 #include <QFileDialog>
@@ -150,13 +147,6 @@ void PoissonCloningWidget::OpenImages(const std::string& sourceImageFileName,
   this->ResultScene->setSceneRect(qimageTargetImage.rect());
 
   this->SourceImagePixmapItem->setZValue(this->TargetImagePixmapItem->zValue()+1); // make sure the source image is on top of the target image
-
-  // Setup selection region
-//  QColor semiTransparentRed(255, 0, 0, 127);
-
-//  auto sourceImageSize = sourceImageReader->GetOutput()->GetLargestPossibleRegion().GetSize();
-//  this->SelectionImage = QImage(sourceImageSize[0],
-//                                sourceImageSize[1], QImage::Format_ARGB32);
 }
 
 void PoissonCloningWidget::on_btnClone_clicked()
@@ -177,20 +167,6 @@ void PoissonCloningWidget::on_btnClone_clicked()
 
   // We must get a function pointer to the overload that would be chosen by the compiler
   // to pass to run().
-//  void (*functionPointer)(const std::remove_pointer<decltype(this->TargetImage.GetPointer())>::type*,
-//                          const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
-//                          const decltype(guidanceFields)&,
-//                          decltype(this->ResultImage.GetPointer()),
-//                          const itk::ImageRegion<2>&)
-//      = FillImage;
-
-//  QFuture<void> future =
-//      QtConcurrent::run(functionPointer,
-//                        this->TargetImage.GetPointer(),
-//                        this->MaskImage.GetPointer(),
-//                        guidanceFields,
-//                        this->ResultImage.GetPointer(),
-//                        desiredRegion);
 
   void (*functionPointer)(const std::remove_pointer<decltype(this->TargetImage.GetPointer())>::type*,
                           const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
@@ -200,14 +176,16 @@ void PoissonCloningWidget::on_btnClone_clicked()
                           const std::remove_pointer<decltype(this->SourceImage.GetPointer())>::type*)
       = FillImage;
 
+  auto functionToRun = std::bind(functionPointer,
+                                 this->TargetImage.GetPointer(),
+                                 this->MaskImage.GetPointer(),
+                                 guidanceFields,
+                                 this->ResultImage.GetPointer(),
+                                 desiredRegion,
+                                 this->SourceImage.GetPointer());
+
   QFuture<void> future =
-      QtConcurrent::run(boost::bind(functionPointer,
-                        this->TargetImage.GetPointer(),
-                        this->MaskImage.GetPointer(),
-                        guidanceFields,
-                        this->ResultImage.GetPointer(),
-                        desiredRegion,
-                        this->SourceImage.GetPointer()));
+      QtConcurrent::run(functionToRun);
 
   this->FutureWatcher.setFuture(future);
 
@@ -231,6 +209,9 @@ void PoissonCloningWidget::on_btnMixedClone_clicked()
   std::vector<PoissonEditingParent::GuidanceFieldType::Pointer> targetGuidanceFields =
       PoissonEditingParent::ComputeGuidanceField(this->TargetImage.GetPointer());
 
+  // Create a container for the new guidance fields
+  std::vector<PoissonEditingParent::GuidanceFieldType::Pointer> mixedGuidanceFields(sourceGuidanceFields.size());
+
   ImageType::RegionType targetDesiredRegion = desiredRegion;
   targetDesiredRegion.Crop(this->TargetImage->GetLargestPossibleRegion());
   ImageType::RegionType sourceDesiredRegion = this->SourceImage->GetLargestPossibleRegion();
@@ -238,49 +219,60 @@ void PoissonCloningWidget::on_btnMixedClone_clicked()
 
   for(unsigned int channel = 0; channel < sourceGuidanceFields.size(); ++channel)
   {
-    itk::ImageRegionIterator<PoissonEditingParent::GuidanceFieldType>
-        sourceIterator(sourceGuidanceFields[channel], sourceDesiredRegion);
-    itk::ImageRegionIterator<PoissonEditingParent::GuidanceFieldType>
-        targetIterator(targetGuidanceFields[channel], targetDesiredRegion);
+    // Initialize the mixed field with the source field
+    mixedGuidanceFields[channel] = PoissonEditingParent::GuidanceFieldType::New();
+    ITKHelpers::DeepCopy(sourceGuidanceFields[channel].GetPointer(), mixedGuidanceFields[channel].GetPointer());
 
-    while(!sourceIterator.IsAtEnd())
+    itk::ImageRegionIterator<PoissonEditingParent::GuidanceFieldType>
+        sourceGuidanceIterator(sourceGuidanceFields[channel], sourceDesiredRegion);
+    itk::ImageRegionIterator<PoissonEditingParent::GuidanceFieldType>
+        targetGuidanceIterator(targetGuidanceFields[channel], targetDesiredRegion);
+    itk::ImageRegionIterator<PoissonEditingParent::GuidanceFieldType>
+        mixedGuidanceIterator(mixedGuidanceFields[channel], sourceDesiredRegion);
+
+    while(!sourceGuidanceIterator.IsAtEnd())
     {
-      float sourceMagnitude = sourceIterator.Get().GetNorm();
-      float targetMagnitude = targetIterator.Get().GetNorm();
+      float sourceMagnitude = sourceGuidanceIterator.Get().GetNorm();
+      float targetMagnitude = targetGuidanceIterator.Get().GetNorm();
 
       if(targetMagnitude > sourceMagnitude)
       {
-        sourceIterator.Set(targetIterator.Get());
+        mixedGuidanceIterator.Set(targetGuidanceIterator.Get());
       }
 
-      ++sourceIterator;
-      ++targetIterator;
+      ++sourceGuidanceIterator;
+      ++targetGuidanceIterator;
+      ++mixedGuidanceIterator;
     }
   }
 
 //  ITKHelpers::WriteImage(this->SourceImage.GetPointer(), "source.mha");
-//  ITKHelpers::WriteImage(guidanceFields[0].GetPointer(), "guidanceField.mha");
+//  ITKHelpers::WriteImage(sourceGuidanceFields[0].GetPointer(), "sourceGuidanceField.mha");
 
   // We must get a function pointer to the overload that would be chosen by the compiler
   // to pass to run().
-//  void (*functionPointer)(const std::remove_pointer<decltype(this->TargetImage.GetPointer())>::type*,
-//                          const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
-//                          const decltype(sourceGuidanceFields)&,
-//                          decltype(this->ResultImage.GetPointer()),
-//                          const itk::ImageRegion<2>&)
-//      = FillImage;
+  void (*functionPointer)(const std::remove_pointer<decltype(this->TargetImage.GetPointer())>::type*,
+                          const std::remove_pointer<decltype(this->MaskImage.GetPointer())>::type*,
+                          const decltype(mixedGuidanceFields)&,
+                          decltype(this->ResultImage.GetPointer()),
+                          const itk::ImageRegion<2>&,
+                          const std::remove_pointer<decltype(this->SourceImage.GetPointer())>::type*)
+      = FillImage;
 
-//  QFuture<void> future =
-//      QtConcurrent::run(functionPointer,
-//                        this->TargetImage.GetPointer(),
-//                        this->MaskImage.GetPointer(),
-//                        sourceGuidanceFields,
-//                        this->ResultImage.GetPointer(),
-//                        desiredRegion);
+  auto functionToRun = std::bind(functionPointer,
+                                 this->TargetImage.GetPointer(),
+                                 this->MaskImage.GetPointer(),
+                                 mixedGuidanceFields,
+                                 this->ResultImage.GetPointer(),
+                                 desiredRegion,
+                                 this->SourceImage.GetPointer());
 
-//  this->FutureWatcher.setFuture(future);
+  QFuture<void> future =
+      QtConcurrent::run(functionToRun);
 
-//  this->ProgressDialog->exec();
+  this->FutureWatcher.setFuture(future);
+
+  this->ProgressDialog->exec();
 }
 
 void PoissonCloningWidget::on_actionSaveResult_activated()

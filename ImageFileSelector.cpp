@@ -64,8 +64,7 @@ ImageFileSelector::ImageFileSelector(const std::vector<std::string>& namedImages
 
   this->setLayout(VLayout);
   this->show();
-
-};
+}
 
 void ImageFileSelector::Verify()
 {

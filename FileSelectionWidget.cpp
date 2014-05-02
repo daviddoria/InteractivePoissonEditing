@@ -88,7 +88,7 @@ QModelIndex FileSelectionWidget::currentIndex() const
   return this->listView->currentIndex();
 }
 
-void FileSelectionWidget::on_listView_clicked(const QModelIndex & index)
+void FileSelectionWidget::on_listView_clicked(const QModelIndex & )
 {
   this->FileName = listView->currentIndex().data(QFileSystemModel::FilePathRole).toString().toStdString();
   this->lblFile->setText(this->FileName.c_str());

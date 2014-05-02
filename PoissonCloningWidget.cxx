@@ -78,7 +78,7 @@ PoissonCloningWidget::PoissonCloningWidget() : QMainWindow()
   this->graphicsViewResultImage->setScene(this->ResultScene);
 }
 
-void PoissonCloningWidget::showEvent(QShowEvent* event)
+void PoissonCloningWidget::showEvent(QShowEvent* )
 {
   if(SourceImagePixmapItem && TargetImagePixmapItem)
   {
@@ -89,7 +89,7 @@ void PoissonCloningWidget::showEvent(QShowEvent* event)
   }
 }
 
-void PoissonCloningWidget::resizeEvent(QResizeEvent* event)
+void PoissonCloningWidget::resizeEvent(QResizeEvent* )
 {
   if(this->SourceImagePixmapItem && this->TargetImagePixmapItem)
   {

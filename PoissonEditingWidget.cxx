@@ -70,7 +70,7 @@ PoissonEditingWidget::PoissonEditingWidget(const std::string& imageFileName,
   OpenImageAndMask(this->SourceImageFileName, this->MaskImageFileName);
 }
 
-void PoissonEditingWidget::showEvent ( QShowEvent * event )
+void PoissonEditingWidget::showEvent ( QShowEvent * )
 {
   if(this->ImagePixmapItem)
   {
@@ -78,7 +78,7 @@ void PoissonEditingWidget::showEvent ( QShowEvent * event )
   }
 }
 
-void PoissonEditingWidget::resizeEvent ( QResizeEvent * event )
+void PoissonEditingWidget::resizeEvent ( QResizeEvent * )
 {
   if(this->ImagePixmapItem)
   {

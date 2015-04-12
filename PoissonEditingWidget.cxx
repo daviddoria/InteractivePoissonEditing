@@ -123,7 +123,7 @@ void PoissonEditingWidget::on_btnFill_clicked()
   this->ProgressDialog->exec();
 }
 
-void PoissonEditingWidget::on_actionSaveResult_activated()
+void PoissonEditingWidget::on_actionSaveResult_triggered()
 {
   // Get a filename to save
   QString fileName = QFileDialog::getSaveFileName(this, "Save File", ".",
@@ -167,9 +167,9 @@ void PoissonEditingWidget::OpenImageAndMask(const std::string& imageFileName,
   this->MaskImagePixmapItem->setVisible(this->chkShowMask->isChecked());
 }
 
-void PoissonEditingWidget::on_actionOpenImageAndMask_activated()
+void PoissonEditingWidget::on_actionOpenImageAndMask_triggered()
 {
-  std::cout << "on_actionOpenImage_activated" << std::endl;
+  std::cout << "on_actionOpenImage_triggered" << std::endl;
   std::vector<std::string> namedImages;
   namedImages.push_back("Image");
   namedImages.push_back("Mask");

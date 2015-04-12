@@ -47,8 +47,8 @@ public:
 
 public slots:
 
-  void on_actionOpenImageAndMask_activated();
-  void on_actionSaveResult_activated();
+  void on_actionOpenImageAndMask_triggered();
+  void on_actionSaveResult_triggered();
   
   void on_btnFill_clicked();
   

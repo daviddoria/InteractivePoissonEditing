@@ -46,8 +46,8 @@ public:
     
 public slots:
 
-  void on_actionOpenImages_activated();
-  void on_actionSaveResult_activated();
+  void on_actionOpenImages_triggered();
+  void on_actionSaveResult_triggered();
   
   void on_btnClone_clicked();
   void on_btnMixedClone_clicked();

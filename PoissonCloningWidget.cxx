@@ -275,7 +275,7 @@ void PoissonCloningWidget::on_btnMixedClone_clicked()
   this->ProgressDialog->exec();
 }
 
-void PoissonCloningWidget::on_actionSaveResult_activated()
+void PoissonCloningWidget::on_actionSaveResult_triggered()
 {
   // Get a filename to save
   QString fileName =
@@ -295,7 +295,7 @@ void PoissonCloningWidget::on_actionSaveResult_activated()
   this->statusBar()->showMessage("Saved result.");
 }
 
-void PoissonCloningWidget::on_actionOpenImages_activated()
+void PoissonCloningWidget::on_actionOpenImages_triggered()
 {
   std::vector<std::string> namedImages;
   namedImages.push_back("SourceImage");

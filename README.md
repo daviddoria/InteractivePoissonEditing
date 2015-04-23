@@ -17,7 +17,7 @@ git submodule update --init
 
 Dependencies
 ------------
-ITK >= 4
+- ITK >= 4
 
 NOTE: If you get errors like:
 vxl/core/vnl/vnl_numeric_traits.h:366:29: error: ‘constexpr’ needed for in-class initialization of static data member ‘zero’ of non-integral type
@@ -27,6 +27,8 @@ It means that you have not built ITK with c++11 eneabled. To do this, you must a
 ccmake ~/src/ITK -DCMAKE_CXX_FLAGS=-std=gnu++11
 
 NOTE: you cannot configure (ccmake) and THEN set CMAKE_CXX_FLAGS - you MUST include the gnu++11 in the ccmake command the very first time it is run.
+
+- Boost 1.51
 
 Building
 --------

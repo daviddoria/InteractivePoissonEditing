@@ -28,9 +28,16 @@ ccmake ~/src/ITK -DCMAKE_CXX_FLAGS=-std=gnu++11
 
 NOTE: you cannot configure (ccmake) and THEN set CMAKE_CXX_FLAGS - you MUST include the gnu++11 in the ccmake command the very first time it is run.
 
+You can tell this project's CMake to use a local ITK build with:
+cmake . -DITK_DIR=/home/doriad/build/ITK
+
 - Boost 1.51
 You can tell this project's CMake to use a local boost build with:
-ccmake . -DBOOST_ROOT=/home/doriad/build/boost_1_51
+cmake . -DBOOST_ROOT=/home/doriad/build/boost_1_51
+
+- Eigen 3.2.1
+- You can tell this project's CMake to use a local Eigen build with:
+cmake . -DEIGEN3_INCLUDE_DIR=/home/doriad/src/eigen-3.2.1/
 
 Building
 --------

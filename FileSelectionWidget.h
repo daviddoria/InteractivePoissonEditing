@@ -16,6 +16,10 @@
  *
  *=========================================================================*/
 
+/** This class allows the user to graphically navigate and select an image.
+  * The selected image is displayed as a thumbnail-style preview.
+  */
+
 #ifndef FileSelectionWidget_H
 #define FileSelectionWidget_H
 
@@ -30,7 +34,7 @@ class FileSelectionWidget : public QWidget, private Ui::FileSelectionWidget
   Q_OBJECT
 
 public:
-  FileSelectionWidget(QWidget *parent = 0);
+  FileSelectionWidget(QWidget *parent = 0, const std::string& extensionFilter = "*");
 
   bool IsValid();
 
@@ -54,6 +58,7 @@ protected:
 
   bool Valid;
   std::string FileName;
+
 };
 
 #endif

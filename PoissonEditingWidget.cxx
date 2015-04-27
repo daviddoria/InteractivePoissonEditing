@@ -174,7 +174,11 @@ void PoissonEditingWidget::on_actionOpenImageAndMask_triggered()
   namedImages.push_back("Image");
   namedImages.push_back("Mask");
   
-  ImageFileSelector* fileSelector(new ImageFileSelector(namedImages));
+  std::vector<std::string> extensionFilters;
+  extensionFilters.push_back("png");
+  extensionFilters.push_back("mask");
+
+  ImageFileSelector* fileSelector(new ImageFileSelector(namedImages, extensionFilters));
   fileSelector->exec();
 
   int result = fileSelector->result();

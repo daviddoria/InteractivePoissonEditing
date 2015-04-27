@@ -40,7 +40,7 @@ class Panel : public QObject
 {
  Q_OBJECT
 public:
-  Panel();
+  Panel(const std::string& extensionFilter);
   
   FileSelectionWidget* SelectionWidget;
 

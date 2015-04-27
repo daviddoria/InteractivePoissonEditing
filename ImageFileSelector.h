@@ -16,6 +16,12 @@
  *
  *=========================================================================*/
 
+/** This class takes a collection of strings that are image "names" (simply
+  * unique identifiers). For each image name provided, a panel is created to
+  * select and preview the image. Once all requested images have been selected,
+  * the dialog can be closed and the results are available in the member FileNames.
+  */
+
 #ifndef ImageFileSelector_H
 #define ImageFileSelector_H
 
@@ -46,7 +52,7 @@ class ImageFileSelector : public QDialog
   Q_OBJECT
 public:
 
-  ImageFileSelector(const std::vector<std::string>& namedImages);
+  ImageFileSelector(const std::vector<std::string>& namedImages, const std::vector<std::string>& extensionFilters);
   std::string GetNamedImageFileName(const std::string& namedImage);
   
 public slots:
@@ -56,9 +62,10 @@ public slots:
   void slot_buttonBox_rejected();
   
 protected:
-  std::vector<std::string> FileNames;
-  std::vector<std::string> NamedImages;
-  
+  std::vector<std::string> FileNames; // The results (the selected file names) are stored in this for later retrieval.
+  std::vector<std::string> NamedImages; // The identifiers of the images to load
+  std::vector<std::string> ExtensionFilters; // The filter for the file extension for each image
+
   std::vector<Panel*> Panels; // Can't store non-pointers because Qt doesn't allow it.
   QDialogButtonBox* ButtonBox;
 };

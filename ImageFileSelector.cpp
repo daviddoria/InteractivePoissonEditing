@@ -36,7 +36,7 @@
 #include <iostream>
 
 // Constructor
-ImageFileSelector::ImageFileSelector(const std::vector<std::string>& namedImages) : NamedImages(namedImages)
+ImageFileSelector::ImageFileSelector(const std::vector<std::string>& namedImages, const std::vector<std::string>& extensionFilters) : NamedImages(namedImages), ExtensionFilters(extensionFilters)
 {
   QVBoxLayout* VLayout = new QVBoxLayout(this);
   
@@ -46,7 +46,7 @@ ImageFileSelector::ImageFileSelector(const std::vector<std::string>& namedImages
 
   for(unsigned int i = 0; i < namedImages.size(); ++i)
     {
-    Panel* panel = new Panel;
+    Panel* panel = new Panel(extensionFilters[i]);
     std::string boldString = "<b>" + namedImages[i] + "</b>";
     panel->Label->setText(boldString.c_str());
     HLayout->addLayout(panel->Layout);

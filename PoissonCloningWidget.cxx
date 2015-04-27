@@ -302,7 +302,11 @@ void PoissonCloningWidget::on_actionOpenImages_triggered()
   namedImages.push_back("TargetImage");
   namedImages.push_back("MaskImage");
   
-  ImageFileSelector* fileSelector(new ImageFileSelector(namedImages));
+  std::vector<std::string> extensionFilters;
+  extensionFilters.push_back("png");
+  extensionFilters.push_back("mask");
+
+  ImageFileSelector* fileSelector(new ImageFileSelector(namedImages, extensionFilters));
   fileSelector->exec();
 
   int result = fileSelector->result();

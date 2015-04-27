@@ -21,10 +21,11 @@
 #include <QWidget>
 
 #include <iostream>
+#include <sstream>
 
 #include "FileSelectionWidget.h"
 
-FileSelectionWidget::FileSelectionWidget(QWidget *parent)
+FileSelectionWidget::FileSelectionWidget(QWidget *parent, const std::string& extensionFilter)
     : QWidget(parent)
 {
   //std::cout << "Current path: " << QDir::currentPath().toStdString() << std::endl;
@@ -33,7 +34,12 @@ FileSelectionWidget::FileSelectionWidget(QWidget *parent)
     
   this->model = new QFileSystemModel;
   this->model->setRootPath(QDir::rootPath());
-  
+  std::stringstream ssNameFilter;
+  ssNameFilter << "*." << extensionFilter;
+
+  this->model->setNameFilters(QStringList()<<ssNameFilter.str().c_str());
+  this->model->setNameFilterDisables(false);
+
   this->listView->setModel(model);
   this->listView->setRootIndex(model->index(QDir::currentPath()));
   

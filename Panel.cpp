@@ -38,9 +38,9 @@
 // ITK
 #include "itkImageFileReader.h"
 
-Panel::Panel()
+Panel::Panel(const std::string& extensionFilter)
 {
-  this->SelectionWidget = new FileSelectionWidget;
+  this->SelectionWidget = new FileSelectionWidget(0, extensionFilter);
   this->GraphicsScene = new QGraphicsScene;
   this->GraphicsView = new QGraphicsView;
   this->GraphicsView->setScene(this->GraphicsScene);

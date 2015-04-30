@@ -40,7 +40,7 @@ ImageFileSelector::ImageFileSelector(const std::vector<std::string>& namedImages
 {
   QVBoxLayout* VLayout = new QVBoxLayout(this);
   
-  QHBoxLayout* HLayout = new QHBoxLayout(this);
+  QHBoxLayout* HLayout = new QHBoxLayout();
 
   VLayout->addLayout(HLayout);
 

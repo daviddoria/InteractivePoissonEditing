@@ -16,7 +16,7 @@ if(UNIX)
 endif(UNIX)
 
 # ITK
-FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase
+FIND_PACKAGE(ITK REQUIRED ITKCommon ITKIOImageBase ITKIOPNG ITKIOMeta
 ITKImageIntensity ITKImageFeature ITKMathematicalMorphology
 ITKBinaryMathematicalMorphology ITKDistanceMap ITKTestKernel)
 INCLUDE(${ITK_USE_FILE})
